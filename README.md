@@ -41,3 +41,13 @@ Curso Treinamento Prometheus e Grafana no nextwave(LuisDEV)
 
 ### Alerting Rules
  - Permite definir alertas baseado na expressão sobre alertas firing.
+
+ ### Thanos
+  - É um “Prometheus” de alta disponibilidade que pode armazenar métricas por muito mais tempo
+  - OpenSource
+  - Incubado pela CNCF
+
+### Grafana
+ - É uma plataforma utilizada para análise e criação de dashboards
+ - Suporte a integração com vários tipos de banco de dados
+ - OpenSource e SaaS
