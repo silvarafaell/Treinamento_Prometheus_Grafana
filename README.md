@@ -53,4 +53,7 @@ Curso Treinamento Prometheus e Grafana no nextwave(LuisDEV)
  - OpenSource e SaaS
 
 ### Hands On
- - docker compose up -d
+ - docker build -t awesomesocialmedia-users -f src/AwesomeSocialMedia.Users.API/Dockerfile .
+ - docker run --name awesomesocialmedia-usersss -d -p 5001:80 -p 5002:443 awesomesocialmedia-users
+ - docker compose up -d --build
+
