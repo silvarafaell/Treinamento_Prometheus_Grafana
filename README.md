@@ -51,3 +51,5 @@ Curso Treinamento Prometheus e Grafana no nextwave(LuisDEV)
  - É uma plataforma utilizada para análise e criação de dashboards
  - Suporte a integração com vários tipos de banco de dados
  - OpenSource e SaaS
+
+### Hands On
