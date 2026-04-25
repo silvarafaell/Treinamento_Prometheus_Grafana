@@ -53,3 +53,4 @@ Curso Treinamento Prometheus e Grafana no nextwave(LuisDEV)
  - OpenSource e SaaS
 
 ### Hands On
+ - docker compose up -d
