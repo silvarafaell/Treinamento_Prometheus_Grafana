@@ -1,0 +1,173 @@
+version: "3.8"
+
+services:
+  awesomesocialmedia:
+    container_name: awesomesocialmedia-usersss
+    image: awesomesocialmedia-users
+    ports:
+      - '5001:80'
+      - '5002:443'
+    deploy:
+      replicas: 0
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 200M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+  grafana:
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 200M
+        reservations:
+          cpus: '0.25'
+          memory: 20M
+    image: grafana/grafana-oss
+    container_name: grafana
+    ports:
+      - '3000:3000'
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+    labels:
+      - monitoring=prometheus
+
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    ports:
+      - '9090:9090'
+    volumes:
+      - prometheus_data:/prometheus
+      - ./prometheus:/etc/prometheus
+  
+  alertmanager:
+    image: prom/alertmanager:v0.26.0
+    container_name: alertmanager
+    ports:
+      - '9093:9093'
+    volumes:
+      - ./alertmanager:/etc/alertmanager
+  
+
+  nodeexporter:
+    image: prom/node-exporter:v0.18.1
+    container_name: nodeexporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.rootfs=/rootfs'
+      - '--path.sysfs=/host/sys'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+    expose:
+      - 9100
+  
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.2
+    entrypoint: ["/usr/bin/cadvisor","-port", "8080", "-store_container_labels", "false", "-prometheusEndpoint", "/metrics", "-whitelisted_container_labels", "electron_task_container,electron_task_hostname,electron_task_id"]
+    privileged: true
+    container_name: cadvisor
+    volumes:
+    - /:/rootfs:ro
+    - /var/run:/var/run:rw
+    - /sys:/sys:ro
+    - /var/lib/docker/:/var/lib/docker:ro
+    - /dev/disk/:/dev/disk:ro
+    ports:
+      - '8080:8080'
+  thanos-01:
+    container_name: thanos-01
+    image: quay.io/thanos/thanos:v0.32.2
+    ports:
+      - 10902
+      - 10901
+      - 19291
+    volumes:
+      - ./thanos/hashring.json:/hashring.json
+      - ./thanos/data-01:/data
+    command: >
+      receive
+      --log.level=debug
+      --log.format=logfmt
+      --remote-write.address=0.0.0.0:19291
+      --tsdb.path=/data
+      --tsdb.retention=24h
+      --tsdb.min-block-duration=2h
+      --tsdb.max-block-duration=32h
+      --receive.replication-factor=2
+      --receive.hashrings-file=/hashring.json
+      --label=replica='"thanos-01"'
+      --receive.local-endpoint="thanos-01:10901"
+  thanos-02:
+    container_name: thanos-02
+    image: quay.io/thanos/thanos:v0.32.2
+    ports:
+      - 10902
+      - 10901
+      - 19291
+    volumes:
+      - ./thanos/hashring.json:/hashring.json
+      - ./thanos/data-02:/data
+    command: >
+      receive
+      --log.level=debug
+      --log.format=logfmt
+      --remote-write.address=0.0.0.0:19291
+      --tsdb.path=/data
+      --tsdb.retention=24h
+      --tsdb.min-block-duration=2h
+      --tsdb.max-block-duration=32h
+      --receive.replication-factor=2
+      --receive.hashrings-file=/hashring.json
+      --label=replica='"thanos-02"'
+      --receive.local-endpoint="thanos-02:10901"
+  thanos-03:
+    container_name: thanos-03
+    image: quay.io/thanos/thanos:v0.32.2
+    ports:
+      - 10902
+      - 10901
+      - 19291
+    volumes:
+      - ./thanos/hashring.json:/hashring.json
+      - ./thanos/data-03:/data
+    command: >
+      receive
+      --log.level=debug
+      --log.format=logfmt
+      --remote-write.address=0.0.0.0:19291
+      --tsdb.path=/data
+      --tsdb.retention=24h
+      --tsdb.min-block-duration=2h
+      --tsdb.max-block-duration=32h
+      --receive.replication-factor=2
+      --receive.hashrings-file=/hashring.json
+      --label=replica='"thanos-03"'
+      --receive.local-endpoint="thanos-03:10901"
+  thanos-query:
+    container_name: thanos-query
+    image: quay.io/thanos/thanos:v0.32.2
+    ports:
+      - 10902:10902
+    command: >
+      query
+      --log.format=logfmt
+      --query.replica-label=replica
+      --store=thanos-01:10901
+      --store=thanos-02:10901
+      --store=thanos-03:10901
+
+volumes:
+  grafana_data: {}
+  prometheus_data:
+    driver: local
+    driver_opts:
+      device: tmpfs
+      type: tmpfs

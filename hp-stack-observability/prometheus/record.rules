@@ -1,0 +1,5 @@
+groups:
+    - name: recording_rules
+      rules:
+      - record: instance_path:prometheus_http_requests_total:rate5m
+        expr: rate(prometheus_http_requests_total{job="prometheus"}[5m])

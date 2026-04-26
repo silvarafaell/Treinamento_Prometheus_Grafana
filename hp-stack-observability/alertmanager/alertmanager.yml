@@ -1,0 +1,15 @@
+route:
+    receiver: 'slack'
+    routes:
+    - receiver: 'slack'
+      matchers:
+        - severity="critical"
+
+receivers:
+  - name: 'slack'
+    slack_configs:
+      - send_resolved: true
+        text: "{{ .CommonAnnotations.description }}"
+        channel: '#alertmanager'
+        ## TBD: token slack
+        api_url: 'https://hooks.slack.com/services/'

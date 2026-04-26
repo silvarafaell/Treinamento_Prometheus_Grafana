@@ -1,0 +1,33 @@
+groups:
+  - name: targets
+    rules:
+    - alert: monitor_service_down
+      expr: up == 0
+      for: 30s
+      labels:
+        severity: critical
+      annotations:
+        description: '{{ $labels.job }} has been down for more than 5 minutes.'
+        summary: 'Job {{ $labels.job }} down'
+  - name: awesomesocialmedia
+    rules:
+    - alert: awesomesocialmedia_requests_latency
+      expr: sum(rate(http_request_duration_seconds_sum{job="awesomesocialmedia"}[1m])) / sum(rate(http_request_duration_seconds_count{job="awesomesocialmedia"}[1m])) < 4
+      for: 30s
+      labels:
+        severity: critical
+        group: awesomesocialmedia
+      annotations:
+        description: '{{ $labels.job }} requests latency .'
+        summary: 'Job {{ $labels.job }} requests latency'
+  - name: http_requests_total
+    rules:
+    - alert: http_requests_total_above
+      expr: increase(http_requests_received_total{job="awesomesocialmedia"}[1m]) > 10
+      for: 30s
+      labels:
+        severity: critical
+        app: awesomesocialmedia
+      annotations:
+        description: '{{ $labels.job }} requests total > 5 .'
+        summary: 'Job {{ $labels.job }} requests total'
